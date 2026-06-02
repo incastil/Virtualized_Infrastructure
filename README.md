@@ -335,14 +335,14 @@ schtasks /create /tn "ServiceAudit" /tr "powershell -File C:\Scripts\ServiceStat
 
 ## CI / GitHub Actions
 
-Every script in this repository is validated automatically on GitHub-hosted runners on every push. No local VirtualBox installation is required to verify correctness — the pipelines run against real operating system environments provided by GitHub.
+The local lab runs on VirtualBox with the two VMs described above. Separately, every script in this repository is validated in GitHub Actions on each push. GitHub provides a `windows-latest` runner that fills the Windows Server role and an `ubuntu-latest` runner that fills the Ubuntu Server role, so the automation logic is verified against real operating system environments without depending on the local lab being online.
 
 ![GitHub Actions](docs/github-actions.png)
 
-| Workflow | Runner | Scripts validated | Trigger |
+| Workflow | Runner (lab role) | Scripts validated | Trigger |
 |---|---|---|---|
-| Python Health Checks | `ubuntu-latest` | `check_servers.py`, `network_health_check.py`, `resource_monitor.py` | push · daily · manual |
-| PowerShell Automation | `windows-latest` | `Collect-SystemInfo.ps1`, `ServiceStatusReport.ps1`, `BackupAutomation.ps1` | push · daily · manual |
+| Python Health Checks | `ubuntu-latest` (VM 2) | `check_servers.py`, `network_health_check.py`, `resource_monitor.py` | push · daily · manual |
+| PowerShell Automation | `windows-latest` (VM 1) | `Collect-SystemInfo.ps1`, `ServiceStatusReport.ps1`, `BackupAutomation.ps1` | push · daily · manual |
 
 **What each pipeline does:**
 - **Ubuntu runner** — Python scripts execute against live internet targets (DNS, public gateways). `check_servers.py` correctly flags the lab VMs as `DOWN` since they are not reachable outside the local network, validating the failure-detection logic. `resource_monitor.py` samples real CPU, RAM, and disk metrics for 30 seconds and writes a CSV artifact.
