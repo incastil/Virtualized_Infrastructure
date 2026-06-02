@@ -369,18 +369,6 @@ View all runs → [Actions tab](https://github.com/incastil/Virtualized_Infrastr
 
 ---
 
-## Lab in Action
-
-Screenshots of the Windows Server 2022 and Ubuntu Server VMs running inside VirtualBox:
-
-| Windows Server 2022 | Ubuntu Server 22.04 |
-|---|---|
-| ![Windows Server VM](docs/vm-windows.png) | ![Ubuntu Server VM](docs/vm-ubuntu.png) |
-
-> Drop your own screenshots into `docs/vm-windows.png` and `docs/vm-ubuntu.png` once the VMs are running.
-
----
-
 ## What This Proves
 
 | Skill area | How this project demonstrates it |
