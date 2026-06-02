@@ -25,25 +25,22 @@ This lab simulates a production-like multi-server environment using two virtual 
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                   Host Machine                       │
-│                                                      │
-│  ┌──────────────────────┐  ┌──────────────────────┐  │
-│  │  VM 1                │  │  VM 2                │  │
-│  │  Windows Server 2022 │  │  Ubuntu Server 22.04 │  │
-│  │  192.168.56.10       │  │  192.168.56.20       │  │
-│  │                      │  │                      │  │
-│  │  - RDP (3389)        │  │  - SSH (22)          │  │
-│  │  - WinRM (5985)      │  │  - HTTP (80)         │  │
-│  │  - SSH (22)          │  │                      │  │
-│  └──────────────────────┘  └──────────────────────┘  │
-│              │                        │               │
-│              └──────────┬─────────────┘               │
-│                  Host-Only Network                    │
-│                  192.168.56.0/24                      │
-│                  Gateway: 192.168.56.1                │
+│                    HOST MACHINE                     │
+├─────────────────────────┬───────────────────────────┤
+│  VM 1                   │  VM 2                     │
+│  Windows Server 2022    │  Ubuntu Server 22.04      │
+│  192.168.56.10          │  192.168.56.20            │
+│                         │                           │
+│  Ports:                 │  Ports:                   │
+│  • RDP    3389          │  • SSH    22              │
+│  • WinRM  5985          │  • HTTP   80              │
+│  • SSH    22            │                           │
+├─────────────────────────┴───────────────────────────┤
+│  Network : Host-Only Adapter (vboxnet0)             │
+│  Subnet  : 192.168.56.0/24                          │
+│  Gateway : 192.168.56.1                             │
 └─────────────────────────────────────────────────────┘
-
-Virtualization Platform: VirtualBox (free) or VMware Workstation Player
+Virtualization Platform: VirtualBox or VMware Workstation Player
 ```
 
 ---
