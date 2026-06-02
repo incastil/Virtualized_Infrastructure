@@ -1,0 +1,39 @@
+# Reports & generated output
+reports/
+*.csv
+*.html
+*.log
+*.jsonl
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# PowerShell
+*.ps1xml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# VirtualBox
+*.vbox
+*.vbox-prev
+*.vdi
+*.vmdk
+*.ova
+*.ovf
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
