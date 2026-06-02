@@ -333,6 +333,27 @@ schtasks /create /tn "ServiceAudit" /tr "powershell -File C:\Scripts\ServiceStat
 
 ---
 
+## CI / GitHub Actions
+
+Both platforms are simulated via GitHub Actions — scripts run automatically on every push against real GitHub-hosted runners, proving the automation works without requiring a local VirtualBox setup.
+
+![GitHub Actions](docs/github-actions.png)
+
+| Workflow | Runner | What runs | Trigger |
+|---|---|---|---|
+| Python Health Checks | `ubuntu-latest` | `check_servers.py`, `network_health_check.py`, `resource_monitor.py` | push · daily · manual |
+| PowerShell Automation | `windows-latest` | `Collect-SystemInfo.ps1`, `ServiceStatusReport.ps1`, `BackupAutomation.ps1` | push · daily · manual |
+
+**How it works:**
+- The Ubuntu runner stands in for **VM 2** — all Python monitoring scripts execute against live internet targets (DNS, gateway) and correctly report the lab VMs as `DOWN` when unreachable, demonstrating failure-detection logic.
+- The Windows runner stands in for **VM 1** — PowerShell scripts collect real system inventory, audit running services, and perform a full backup cycle with retention cleanup.
+- Each run uploads **CSV, JSON, and HTML reports** as downloadable artifacts retained for 7 days.
+- Status badges at the top of this README reflect the latest run result in real time.
+
+View all runs → [Actions tab](https://github.com/incastil/Virtualized_Infrastructure/actions)
+
+---
+
 ## Technologies
 
 | Technology | Purpose |
@@ -344,6 +365,7 @@ schtasks /create /tn "ServiceAudit" /tr "powershell -File C:\Scripts\ServiceStat
 | Python 3.10+ | Cross-platform monitoring scripts |
 | psutil | Python system metrics library |
 | robocopy | Windows native backup copy tool |
+| GitHub Actions | CI — simulate VMs, run and validate all scripts |
 
 ---
 
