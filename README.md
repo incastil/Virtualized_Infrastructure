@@ -335,18 +335,18 @@ schtasks /create /tn "ServiceAudit" /tr "powershell -File C:\Scripts\ServiceStat
 
 ## CI / GitHub Actions
 
-Both platforms are simulated via GitHub Actions — scripts run automatically on every push against real GitHub-hosted runners, proving the automation works without requiring a local VirtualBox setup.
+Every script in this repository is validated automatically on GitHub-hosted runners on every push. No local VirtualBox installation is required to verify correctness — the pipelines run against real operating system environments provided by GitHub.
 
 ![GitHub Actions](docs/github-actions.png)
 
-| Workflow | Runner | What runs | Trigger |
+| Workflow | Runner | Scripts validated | Trigger |
 |---|---|---|---|
 | Python Health Checks | `ubuntu-latest` | `check_servers.py`, `network_health_check.py`, `resource_monitor.py` | push · daily · manual |
 | PowerShell Automation | `windows-latest` | `Collect-SystemInfo.ps1`, `ServiceStatusReport.ps1`, `BackupAutomation.ps1` | push · daily · manual |
 
-**How it works:**
-- The Ubuntu runner stands in for **VM 2** — all Python monitoring scripts execute against live internet targets (DNS, gateway) and correctly report the lab VMs as `DOWN` when unreachable, demonstrating failure-detection logic.
-- The Windows runner stands in for **VM 1** — PowerShell scripts collect real system inventory, audit running services, and perform a full backup cycle with retention cleanup.
+**What each pipeline does:**
+- **Ubuntu runner** — Python scripts execute against live internet targets (DNS, public gateways). `check_servers.py` correctly flags the lab VMs as `DOWN` since they are not reachable outside the local network, validating the failure-detection logic. `resource_monitor.py` samples real CPU, RAM, and disk metrics for 30 seconds and writes a CSV artifact.
+- **Windows runner** — PowerShell scripts collect a full system inventory from the runner host, audit all running Windows services, and complete a backup cycle including ZIP compression and retention cleanup.
 - Each run uploads **CSV, JSON, and HTML reports** as downloadable artifacts retained for 7 days.
 - Status badges at the top of this README reflect the latest run result in real time.
 
@@ -365,7 +365,32 @@ View all runs → [Actions tab](https://github.com/incastil/Virtualized_Infrastr
 | Python 3.10+ | Cross-platform monitoring scripts |
 | psutil | Python system metrics library |
 | robocopy | Windows native backup copy tool |
-| GitHub Actions | CI — simulate VMs, run and validate all scripts |
+| GitHub Actions | CI — validate all scripts on hosted runners |
+
+---
+
+## Lab in Action
+
+Screenshots of the Windows Server 2022 and Ubuntu Server VMs running inside VirtualBox:
+
+| Windows Server 2022 | Ubuntu Server 22.04 |
+|---|---|
+| ![Windows Server VM](docs/vm-windows.png) | ![Ubuntu Server VM](docs/vm-ubuntu.png) |
+
+> Drop your own screenshots into `docs/vm-windows.png` and `docs/vm-ubuntu.png` once the VMs are running.
+
+---
+
+## What This Proves
+
+| Skill area | How this project demonstrates it |
+|---|---|
+| **Virtualization** | Multi-VM lab built on VirtualBox with host-only networking between Windows Server 2022 and Ubuntu Server; covers VM creation, network adapter configuration, and snapshot management |
+| **Windows Server administration** | PowerShell scripts collect full system inventory, audit Windows services with auto-restart logic, and manage backups with robocopy and retention policies — all tasks performed daily by Windows Server admins |
+| **Linux administration** | Python scripts run natively on Ubuntu; lab setup covers static IP configuration via Netplan, SSH hardening, package management, and systemd service awareness |
+| **PowerShell automation** | Three production-style scripts with parameter validation, remote execution support (`Invoke-Command`), HTML/CSV report generation, structured logging, and Task Scheduler integration |
+| **Monitoring & diagnostics** | Python tooling covers multi-threaded reachability checks, port-level health validation, subnet host discovery, DNS resolution testing, and continuous resource sampling with configurable alerting |
+| **CI / DevOps practices** | GitHub Actions pipelines validate every script on real Windows and Ubuntu runners on every push, with artifact uploads and status badges — demonstrating comfort with automation and code quality gates |
 
 ---
 
