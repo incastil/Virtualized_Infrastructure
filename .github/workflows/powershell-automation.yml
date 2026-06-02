@@ -1,0 +1,89 @@
+name: PowerShell Automation (Windows Server)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/powershell/**"
+      - ".github/workflows/powershell-automation.yml"
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 8 * * *"   # daily 8 AM UTC
+  workflow_dispatch:
+
+jobs:
+  powershell-automation:
+    name: Run PowerShell automation scripts
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set PowerShell execution policy
+        shell: pwsh
+        run: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+
+      # ── Collect-SystemInfo.ps1 ────────────────────────────────────────
+      - name: Collect system inventory
+        shell: pwsh
+        run: |
+          Write-Host "===== Collect-SystemInfo.ps1 =====" -ForegroundColor Cyan
+          New-Item -ItemType Directory -Path "$env:RUNNER_TEMP\Reports" -Force | Out-Null
+          .\scripts\powershell\Collect-SystemInfo.ps1 `
+            -ExportCSV `
+            -OutputPath "$env:RUNNER_TEMP\Reports"
+          Write-Host "`n--- CSV content ---"
+          Get-ChildItem "$env:RUNNER_TEMP\Reports\SystemInventory_*.csv" |
+            ForEach-Object { Import-Csv $_.FullName | Format-List }
+
+      # ── ServiceStatusReport.ps1 ───────────────────────────────────────
+      - name: Service status report
+        shell: pwsh
+        run: |
+          Write-Host "===== ServiceStatusReport.ps1 =====" -ForegroundColor Cyan
+          .\scripts\powershell\ServiceStatusReport.ps1 `
+            -ExportReport `
+            -OutputPath "$env:RUNNER_TEMP\Reports"
+          Write-Host "`n--- Report files ---"
+          Get-ChildItem "$env:RUNNER_TEMP\Reports\ServiceReport_*"
+
+      # ── BackupAutomation.ps1 ──────────────────────────────────────────
+      - name: Backup automation
+        shell: pwsh
+        run: |
+          Write-Host "===== BackupAutomation.ps1 =====" -ForegroundColor Cyan
+
+          # Create sample source data to back up
+          $src = "$env:RUNNER_TEMP\SourceData"
+          New-Item -ItemType Directory -Path "$src\Configs" -Force | Out-Null
+          New-Item -ItemType Directory -Path "$src\Logs"    -Force | Out-Null
+          "server=192.168.56.10`nport=5985" | Out-File "$src\Configs\winrm.conf"
+          "server=192.168.56.20`nport=22"   | Out-File "$src\Configs\ssh.conf"
+          "2025-06-01 boot ok"              | Out-File "$src\Logs\system.log"
+
+          $dest = "$env:RUNNER_TEMP\Backups"
+
+          # Run compressed backup with 7-day retention
+          .\scripts\powershell\BackupAutomation.ps1 `
+            -SourcePaths "$src\Configs","$src\Logs" `
+            -BackupRoot  $dest `
+            -CompressBackup `
+            -RetentionDays 7
+
+          Write-Host "`n--- Backup contents ---"
+          Get-ChildItem $dest -Recurse | Select-Object Name, Length, LastWriteTime
+
+          Write-Host "`n--- Backup log ---"
+          Get-Content "$dest\backup.log"
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: powershell-reports
+          path: |
+            ${{ runner.temp }}\Reports\
+            ${{ runner.temp }}\Backups\
+          retention-days: 7

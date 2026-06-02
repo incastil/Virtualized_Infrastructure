@@ -1,0 +1,80 @@
+name: Python Health Checks (Ubuntu VM)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/python/**"
+      - ".github/workflows/python-health-checks.yml"
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 8 * * *"   # daily 8 AM UTC
+  workflow_dispatch:
+
+jobs:
+  health-checks:
+    name: Run Python monitoring scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install psutil
+
+      # ── check_servers.py ─────────────────────────────────────────────
+      - name: Server health check
+        run: |
+          echo "===== check_servers.py ====="
+          python scripts/python/check_servers.py --output /tmp/server_health.json
+          echo ""
+          echo "--- JSON output ---"
+          cat /tmp/server_health.json
+        # Lab VMs (192.168.56.x) are not reachable in CI — script reports
+        # them as DOWN, demonstrating correct failure-detection behaviour.
+
+      # ── network_health_check.py ───────────────────────────────────────
+      - name: Network health check
+        run: |
+          echo "===== network_health_check.py ====="
+          # --no-scan skips the 192.168.56.0/24 host discovery (not reachable
+          # in CI). DNS and gateway checks still run against real internet.
+          python scripts/python/network_health_check.py \
+            --no-scan \
+            --output /tmp/network_health.json
+          echo ""
+          echo "--- JSON output ---"
+          cat /tmp/network_health.json
+
+      # ── resource_monitor.py ───────────────────────────────────────────
+      - name: Resource monitor (30-second sample)
+        run: |
+          echo "===== resource_monitor.py ====="
+          python scripts/python/resource_monitor.py \
+            --interval 10 \
+            --duration 30 \
+            --output /tmp/metrics.csv \
+            --alert-cpu 95 \
+            --alert-ram 95 \
+            --alert-disk 95
+          echo ""
+          echo "--- CSV output ---"
+          cat /tmp/metrics.csv
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python-reports
+          path: |
+            /tmp/server_health.json
+            /tmp/network_health.json
+            /tmp/metrics.csv
+          retention-days: 7

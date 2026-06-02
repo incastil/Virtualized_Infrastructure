@@ -1,5 +1,8 @@
 # Virtualized Infrastructure Monitoring & Automation Lab
 
+[![Python Health Checks](https://github.com/incastil/Virtualized_Infrastructure/actions/workflows/python-health-checks.yml/badge.svg)](https://github.com/incastil/Virtualized_Infrastructure/actions/workflows/python-health-checks.yml)
+[![PowerShell Automation](https://github.com/incastil/Virtualized_Infrastructure/actions/workflows/powershell-automation.yml/badge.svg)](https://github.com/incastil/Virtualized_Infrastructure/actions/workflows/powershell-automation.yml)
+
 A portfolio project demonstrating DevOps/SRE skills: virtualization, Windows Server administration, PowerShell automation, Python monitoring, and cross-platform server operations.
 
 ---
